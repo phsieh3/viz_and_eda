@@ -1,0 +1,77 @@
+---
+title: "Visualization Pt 1"
+name: "Pei Yang Hsieh"
+date: "September 27, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggridges)
+library(rnoaa)
+```
+
+## weather_df
+
+```{r weather_df}
+weather_df = 
+  rnoaa::meteo_pull_monitors(c("USW00094728", "USC00519397", "USS0023B17S"),
+                      var = c("PRCP", "TMIN", "TMAX"), 
+                      date_min = "2017-01-01",
+                      date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY", 
+                      USC00519397 = "Waikiki_HA",
+                      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+weather_df
+```
+
+## Basic Scatterplot of Min temp vs Max temp
+
+
+```{r basic_scatterplot}
+ggplot(weather_df, aes(x = tmin, y = tmax)) + 
+  geom_point()
+```
+## Advanced scatterplot
+
+```{r advanced_scatterplot}
+#add legend, color is mapped to name variable
+ggplot(weather_df, aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name))
+
+#alpha makes points more transparent. geom smooth adds curve.
+ggplot(weather_df, aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .5) +
+  geom_smooth(se = FALSE)
+
+#if color = name is moved up, then there are separate smooth curves for each. 
+ggplot(weather_df, aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = .5) +
+  geom_smooth(se = FALSE)
+
+#facet separates into 3 plots based on name variable
+ggplot(weather_df, aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = .5) +
+  geom_smooth(se = FALSE) + 
+  facet_grid(. ~ name)
+```
+## Max temp vs date plot
+
+```{r temp_date}
+#geom_line option can connect the points into lines
+ggplot(weather_df, aes(x = date, y = tmax, color = name)) + 
+  geom_line()
+
+#examines precipitation
+ggplot(weather_df, aes(x = date, y = tmax, color = name)) + 
+  geom_point(aes(size = prcp), alpha = .5) +
+  geom_smooth(se = FALSE) + 
+  facet_grid(. ~ name)
+```
+
+
+
