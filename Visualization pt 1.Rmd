@@ -72,6 +72,64 @@ ggplot(weather_df, aes(x = date, y = tmax, color = name)) +
   geom_smooth(se = FALSE) + 
   facet_grid(. ~ name)
 ```
+#Extra tips and tricks
+
+```{r tips}
+#basic plot
+ggplot(weather_df, aes(x = date, y = tmax, color = name)) + 
+  geom_smooth(se = FALSE) 
+
+#hex shows different things
+ggplot(weather_df, aes(x = tmax, y = tmin)) + 
+  geom_hex()
+
+#specifying outside of aes will color all your plots blue
+ggplot(weather_df) + geom_point(aes(x = tmax, y = tmin), color = "blue")
+
+#specifying inside aes, ggplot looks for a variable called blue. But since there's no variable blue in our dataset, ggplot creates one, and gives this "blue" variable the same value for all rows of our dataset. And it happens to color all of those points in red/pink in our plot. Notice the legend in this second plot
+ggplot(weather_df) + geom_point(aes(x = tmax, y = tmin, color = "blue"))
+```
 
 
+## Univariate Plot
+
+```{r univariate}
+#basic histogram
+ggplot(weather_df, aes(x = tmax)) + 
+  geom_histogram()
+
+#change bin width and use fill to add color based on name. 
+#The position = "dodge" places the bars for each group side-by-side
+ggplot(weather_df, aes(x = tmax, fill = name)) + 
+  geom_histogram(position = "dodge", binwidth = 2)
+
+#density plot to see each distribution for each location
+ggplot(weather_df, aes(x = tmax, fill = name)) + 
+  geom_density(alpha = .4, adjust = .5, color = "blue")
+
+```
+## Box, Violin, and Ridge plots
+
+```{r other}
+#basic boxplot
+ggplot(weather_df, aes(x = name, y = tmax)) + 
+  geom_boxplot()
+
+#violin plot. shows shape of distribution
+ggplot(weather_df, aes(x = name, y = tmax)) + 
+  geom_violin(aes(fill = name), color = "blue", alpha = .5) + 
+  stat_summary(fun.y = median, geom = "point", color = "blue", size = 4)
+
+#ridge plot
+ggplot(weather_df, aes(x = tmax, y = name)) + 
+  geom_density_ridges(scale = .85)
+```
+## Saving plots
+
+```{r save_plot}
+weather_plot = ggplot(weather_df, aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .5) 
+
+ggsave("weather_plot.pdf", weather_plot, width = 8, height = 5)
+```
 
