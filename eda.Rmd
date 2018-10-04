@@ -100,5 +100,46 @@ weather_df %>%
   spread(key = month, value = mean_tmax) %>% 
   knitr::kable(digits = 1)
 ```
+## Grouped mutate
 
+```{r group_mutate}
+weather_df %>%
+  group_by(name) %>%
+  mutate(centered_tmax = tmax - mean(tmax)) %>% 
+  ggplot(aes(x = date, y = centered_tmax, color = name)) + 
+    geom_point() 
+#shows how temperatures relate to average temp. are they above or below? 
+```
+## Window functions
+
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  mutate(temp_ranking = min_rank(tmax))
+
+#keep only the day with the lowest max temperature within each month:
+weather_df %>%
+  group_by(name, month) %>%
+  filter(min_rank(tmax) < 2)
+
+#keep the three days with the highest max temperature
+weather_df %>%
+  group_by(name, month) %>%
+  filter(min_rank(desc(tmax)) < 4)
+
+#find the day-by-day change in max temperature within each station over the year
+#Ex: 4.4 - 5.6 = -1.2
+#make sure your dates are in order
+weather_df %>%
+  group_by(name) %>%
+  mutate(temp_change = tmax - lag(tmax))
+
+#to quantify the day-by-day variability in max temperature, or to identify the largest one-day increase:
+#how much variability is there from day to day in each location? 
+weather_df %>%
+  group_by(name) %>%
+  mutate(temp_change = tmax - lag(tmax)) %>%
+  summarize(temp_change_sd = sd(temp_change, na.rm = TRUE),
+            temp_change_max = max(temp_change, na.rm = TRUE))
+```
 
