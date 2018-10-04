@@ -1,0 +1,104 @@
+---
+title: "EDA"
+author: "Pei Yang Hsieh"
+date: 2018-10-04
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggridges)
+library(patchwork)
+```
+
+## Load data
+
+```{r load}
+#load data
+weather_df = 
+  rnoaa::meteo_pull_monitors(c("USW00094728", "USC00519397", "USS0023B17S"),
+                      var = c("PRCP", "TMIN", "TMAX"), 
+                      date_min = "2016-01-01",
+                      date_max = "2016-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY", 
+                      USC00519397 = "Waikiki_HA",
+                      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10,
+    month = lubridate::floor_date(date, unit = "month")) %>%
+  select(name, id, date, month, everything())
+```
+
+## Group by
+
+```{r group}
+weather_df %>%
+  group_by(name, month)
+```
+## Counting
+
+```{r count}
+weather_df %>%
+  group_by(month) %>%
+  summarize(n = n()) #n is number of elements that exist 
+
+weather_df %>%
+  group_by(name) %>%
+  summarize(n = n())
+
+weather_df %>%
+  count(month)
+
+weather_df %>%
+  count(name, month)
+
+#we count the number of observations in each month and the number of distinct values of date in each month.
+weather_df %>%
+  group_by(month) %>%
+  summarize(n_obs = n(),
+            n_days = n_distinct(date))
+```
+## General summaries
+
+```{r summary}
+weather_df %>%
+  group_by(month) %>%
+  summarize(mean_tmax = mean(tmax),
+            mean_prec = mean(prcp, na.rm = TRUE),
+            median_tmax = median(tmax),
+            sd_tmax = sd(tmax))
+
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(number = n(),
+            num_na = sum(is.na(tmax))) #count how many are missing
+            
+
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(mean_tmax = mean(tmax),
+            median_tmax = median(tmax))
+```
+# Plot on monthly summary
+
+```{r plot_summary}
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(mean_tmax = mean(tmax)) %>%
+  ggplot(aes(x = month, y = mean_tmax, color = name)) + 
+    geom_point() + geom_line() + 
+    theme(legend.position = "bottom")
+```
+
+## Tidying with table
+
+```{r}
+weather_df %>%
+  group_by(name, month) %>%
+  summarize(mean_tmax = mean(tmax)) %>% 
+  spread(key = month, value = mean_tmax) %>% 
+  knitr::kable(digits = 1)
+```
+
+
